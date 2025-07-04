@@ -59,3 +59,14 @@ traffic-surveillance/
    ```
 
 # Step 1: Collect Training Data (DVS ROIs) 
+Extract grayscale event-based ROIs from a video for each class label.
+```bash
+   python collect_data.py
+   ```
+Controls:<br>
+Press s → Save current ROI (image)<br>
+Press n → Switch label (Car → Bike → Truck)<br>
+Press p → Pause and resume<br>
+Press q → Quit<br>
+
+🛠 Make sure Resources/traffic_3.mp4 exists before running.

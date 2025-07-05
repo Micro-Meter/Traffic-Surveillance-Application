@@ -8,7 +8,7 @@ An real time DVS-style traffic monitoring system for:
 
 # What's Special?
 Unlike traditional frame-based detection, this project uses DVS-inspired motion detection — using pixel-level intensity changes between consecutive frames to generate event frames, making it very efficient and responsive to motion.
-![Traffic Surveillance Demo](Resources/outputdvs.gif)
+![Traffic Surveillance Demo](vehicle_dataset/outputdvs.gif)
 # Features
 - Motion detection via event-based frame differencing (DVS-inspired)
 - Real-time object tracking with contour detection and centroid association

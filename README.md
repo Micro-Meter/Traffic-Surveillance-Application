@@ -30,8 +30,7 @@ Unlike traditional frame-based detection, this project uses DVS-inspired motion 
 traffic-surveillance/
 ├── collect_data.py           # Save DVS-style ROIs from video
 ├── train_model.py            # Train CNN on vehicle images
-├── main.py                   # Real-time detection, classification & speed tracking
-├── model/
+├── main.py/                   # Real-time detection, classification & speed tracking
 │   └── vehicle_cnn_model.h5  # Saved trained model
 ├── vehicle_dataset/
 │   ├── Car/

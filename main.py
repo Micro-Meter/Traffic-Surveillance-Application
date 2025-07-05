@@ -4,9 +4,16 @@ import tensorflow as tf
 import time
 import psutil
 from scipy.spatial import distance as dist
+import os
+import gdown
+
+model_path = "model/vehicle_cnn_model.h5"
+if not os.path.exists(model_path):
+    url = "https://drive.google.com/uc?id=1u0x2qzGriNfNIiAz3J8oDvi7nHKgbwrd"  # ← Replace with your real ID
+    gdown.download(url, model_path, quiet=False)
 
 LABELS = ['Car', 'Bike', 'Truck']
-model = tf.keras.models.load_model('model/vehicle_cnn_model.h5')
+model = tf.keras.models.load_model(model_path)
 IMG_WIDTH = 100
 IMG_HEIGHT = 120
 

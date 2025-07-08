@@ -89,7 +89,7 @@ It performs -
 - Centroid-based object tracking with ID persistence
 - Speed estimation from movement across lines (y = 240 → 200)
 - Live overlay: object boxes, motion arrows, labels, and stats<br><br>
-https://www.youtube.com/watch?v=G4F6J-8Mi7M
+
 🎥 [Watch Demo on YouTube](https://www.youtube.com/watch?v=G4F6J-8Mi7M)<br>
   [![Watch on YouTube](https://img.youtube.com/vi/G4F6J-8Mi7M/0.jpg)](https://www.youtube.com/watch?v=G4F6J-8Mi7M)
 

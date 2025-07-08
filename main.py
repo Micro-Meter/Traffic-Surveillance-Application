@@ -12,8 +12,9 @@ if not os.path.exists(model_path):
     url = "https://drive.google.com/uc?id=1u0x2qzGriNfNIiAz3J8oDvi7nHKgbwrd"  # ← Replace with your real ID
     gdown.download(url, model_path, quiet=False)
 
+
 LABELS = ['Car', 'Bike', 'Truck']
-model = tf.keras.models.load_model(model_path)
+model = tf.keras.models.load_model('model/vehicle_cnn_model.h5')
 IMG_WIDTH = 100
 IMG_HEIGHT = 120
 
@@ -28,8 +29,8 @@ def update_tracked_objects(input_centroids):
             tracked_objects[next_object_id] = {
                 "current": centroid,
                 "prev": centroid,
-                "start_time": None,
-                "end_time": None,
+                "start_frame": 0,
+                "end_frame": 0,
                 "crossed_240": False,
                 "crossed_200": False
             }
@@ -60,8 +61,8 @@ def update_tracked_objects(input_centroids):
         new_tracked[object_id] = {
             "prev": old_data["current"],
             "current": matched_centroid,
-            "start_time": old_data["start_time"],
-            "end_time": old_data["end_time"],
+            "start_frame": old_data["start_frame"],
+            "end_frame": old_data["end_frame"],
             "crossed_240": old_data["crossed_240"],
             "crossed_200": old_data["crossed_200"]
         }
@@ -73,8 +74,8 @@ def update_tracked_objects(input_centroids):
             new_tracked[next_object_id] = {
                 "prev": centroid,
                 "current": centroid,
-                "start_time": None,
-                "end_time": None,
+                "start_frame": 0,
+                "end_frame": 0,
                 "crossed_240": False,
                 "crossed_200": False
             }
@@ -95,14 +96,15 @@ time_1 = time.time()
 
 frame_width = 640
 frame_height = 360
-fps = cap.get(cv2.CAP_PROP_FPS)
-out =  cv2.VideoWriter('new_output.mp4', cv2.VideoWriter_fourcc(*'mp4v'), fps, (frame_width, frame_height))
 
+video_fps = cap.get(cv2.CAP_PROP_FPS)
+out =  cv2.VideoWriter('new_output2.mp4', cv2.VideoWriter_fourcc(*'mp4v'), video_fps, (frame_width, frame_height))
+frame_count = 0
 while True:
     ret, curr_frame = cap.read()
     if not ret:
         break
-
+    frame_count += 1
     curr_gray = cv2.cvtColor(curr_frame, cv2.COLOR_BGR2GRAY)
     diff = curr_gray.astype(np.int16) - prev_frame.astype(np.int16)
 
@@ -149,8 +151,8 @@ while True:
 
         input_centroids.append((cx, cy))
         cv2.rectangle(curr_frame, (x, y), (x + w, y + h), (0, 255, 0), 1)
-        cv2.putText(curr_frame, f"{vehicle_name} ({confidence:.2f})", (x, y - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.3,
-                    (0, 255, 255), 1)
+        cv2.putText(curr_frame, f"{vehicle_name}", (x, y - 8), cv2.FONT_HERSHEY_SIMPLEX, 0.3,
+                    (0, 0, 0), 1)
 
 
     tracked = update_tracked_objects(input_centroids)
@@ -159,23 +161,25 @@ while True:
         x_prev, y_prev = obj["prev"]
         x_curr, y_curr = obj["current"]
 
-        if not obj["crossed_240"] and y_curr >= 240:
-            tracked[object_id]["start_time"] = time.time()
+        if not obj["crossed_240"] and y_curr <= 210:
+            print(f"{object_id}: {x_prev}, {y_prev}, {x_curr}, {y_curr}")
+            tracked[object_id]["start_frame"] = frame_count
             tracked[object_id]["crossed_240"] = True
 
-        if obj["crossed_240"] and not obj["crossed_200"] and y_curr <= 200:
-            tracked[object_id]["end_time"] = time.time()
+        if obj["crossed_240"] and not obj["crossed_200"] and y_curr <= 100:
+            print(f"{object_id}: {x_prev}, {y_prev}, {x_curr}, {y_curr}")
+            tracked[object_id]["end_frame"] = frame_count
             tracked[object_id]["crossed_200"] = True
-            total_time = tracked[object_id]["end_time"] - tracked[object_id]["start_time"]
+            total_time = (tracked[object_id]["end_frame"] - tracked[object_id]["start_frame"])/video_fps
             store_time.append(total_time)
-            print(f"ID {object_id} took {total_time:.2f} seconds from y=240 to y=200")
+            print(f"ID {object_id} took {total_time:.5f} seconds from y=240 to y=200")
 
         vx = x_prev
         vy = 4 * y_curr - 3 * y_prev
         cv2.arrowedLine(dvs_frame, (x_prev, y_prev), (x_prev, vy), 255, 1, tipLength=0.4)
-        cv2.arrowedLine(curr_frame, (x_prev, y_prev), (x_prev, vy), (0, 0, 255), 2, tipLength=0.4)
-        cv2.putText(curr_frame, f"ID {object_id}", (x_curr + 5, y_curr - 5),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        cv2.arrowedLine(curr_frame, (x_prev, y_prev), (x_prev, vy), (0, 0, 255), 1, tipLength=0.4)
+        cv2.putText(curr_frame, f"ID {object_id}", (x_curr + 8, y_curr),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 2)
 
     for i in range (len(store_time)):
         relative_speed = store_time[i]/store_time[0]
@@ -191,13 +195,13 @@ while True:
     time_0 = time.time()
     latency = (time_0 - time_1) * 1000
     time_1 = time_0
-    video_fps = cap.get(cv2.CAP_PROP_FPS)
+
 
     cv2.putText(curr_frame, f"Input file FPS: {video_fps:.2f}", (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
     cv2.putText(curr_frame, f"Latency: {latency:.0f} ms", (10, 40), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
-    cv2.putText(curr_frame, f"CPU Usage: {cpu_fraction:.2f}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
-    cv2.putText(curr_frame, f"{bars}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.2, (0, 255, 255), 2)
-    cv2.putText(curr_frame, f"Memory: {memory_fraction:.2f}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
+    cv2.putText(curr_frame, f"CPU Usage: {cpu_fraction:.2f}", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+    cv2.putText(curr_frame, f"{bars}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 0.2, (255, 255, 255), 3)
+    cv2.putText(curr_frame, f"Memory: {memory_fraction:.2f}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
     out.write(curr_frame)
     cv2.imshow('Recognition', curr_frame)
 

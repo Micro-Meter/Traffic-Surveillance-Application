@@ -93,12 +93,5 @@ It performs -
 🎥 [Watch Demo on YouTube](https://www.youtube.com/watch?v=G4F6J-8Mi7M)<br>
   [![Watch on YouTube](https://img.youtube.com/vi/G4F6J-8Mi7M/0.jpg)](https://www.youtube.com/watch?v=G4F6J-8Mi7M)
 
-# Technical Notes
-- Event frames are generated using pixel intensity thresholding.
-- ROIs filtered by a defined road polygon mask
-- CNN input shape: (120, 100, 1)
-- Classification confidence threshold: 0.7
-- The code is modular and easy to adapt for other environments or object types
 
-#
 Built with ❤️ by Shreya Verma
